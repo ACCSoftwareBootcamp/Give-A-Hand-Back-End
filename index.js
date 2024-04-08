@@ -39,9 +39,7 @@ app.post("/request", (req, res) => {
         .json({ message: "Success request created!", sentRequest });
     })
     .catch((error) => {
-      res
-        .status(500)
-        .json({ message: "Server Error: Failed to create new request", error });
+      res.status(500).json({ message: "Failed to create new request", error });
     });
 });
 
