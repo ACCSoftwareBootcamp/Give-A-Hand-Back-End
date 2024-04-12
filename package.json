@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "nodemon index",
     "lint": "eslint",
     "lint:fix": "eslint",
     "format": "prettier . --write --ignore-unknown",

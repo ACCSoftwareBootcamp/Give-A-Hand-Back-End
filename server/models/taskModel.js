@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 
-const requestSchema = {
+const taskSchema = {
   taskType: {
     type: String,
-    required: [true, "Type of request is required"],
+    required: [true, "Type of Task is required"],
     minLength: [1, "Should be at least 1 characters long"],
     maxLength: [15, "Should be less than 15 characters"],
   },
@@ -27,4 +27,4 @@ const requestSchema = {
   },
 };
 
-exports.RequestModel = mongoose.model("userRequest", requestSchema);
+exports.TaskModel = mongoose.model("userTask", taskSchema);
