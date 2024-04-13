@@ -1,17 +1,15 @@
-// require('dotenv').config();
+const mongoose = require("mongoose");
+require("dotenv").config();
+const cors = require("cors");
 const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3000;
-const mongoose = require("mongoose");
-const morgan = require("morgan");
 //FOUNDATION
 
 const connectionString = process.env.MONGODB_URI;
 
 mongoose
-  .connect(
-    "mongodb+srv://tylerlane1:texas3997@cluster0.ze7ta5k.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
-  )
+  .connect(connectionString)
   .then(() => {
     console.log("Successfully connected to database");
   })
@@ -19,12 +17,12 @@ mongoose
     console.log("Error connecting to the DB:", error);
   });
 
-const RequestModel = require("./server/models/requestModel");
+const { TaskModel } = require("./server/models/requestModel");
 
 //MIDDLEWARE
-app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(cors());
 
 //Routes
 app.get("/", (req, res) => {
@@ -32,33 +30,33 @@ app.get("/", (req, res) => {
 });
 
 //Create New Request
-app.post("/request", (req, res) => {
-  const { requestType, request } = req.body;
-
-  if (requestType && request) {
-    const newRequest = {
-      requestType: requestType,
-      request: request,
-    };
-    RequestModel.create(newRequest)
-      .then((sentRequest) => {
-        res
-          .status(201)
-          .json({ message: "Success request created!", sentRequest });
-      })
-      .catch((error) => {
-        res
-          .status(500)
-          .json({ message: "Server Error: Failed to create new request" });
-      });
-  } else {
-    res.status(400).json({ messgae: "Failed: New request NOT created" });
-  }
+app.post("/task", (req, res) => {
+  const newTask = req.body;
+  TaskModel.create(newTask)
+    .then((sentTask) => {
+      res.status(201).json({ message: "Success task created!", sentTask });
+    })
+    .catch((error) => {
+      res.status(500).json({ message: "Failed to create new task", error });
+    });
 });
 
 //Read Request
-app.get("/request", (req, res) => {
-  RequestModel.find()
+app.get("/task", (req, res) => {
+  TaskModel.find()
+    .then((results) => {
+      res.json({ message: "Success", results });
+    })
+    .catch((error) => {
+      console.log("error reading data from DB", error);
+      res.status(400).json({ message: "Unable to retrive data at this time" });
+    });
+});
+//Read Request by ID
+app.get("/task/:id", (req, res) => {
+  const taskId = req.params.id;
+
+  TaskModel.find(taskId)
     .then((results) => {
       res.json({ message: "Success", results });
     })
@@ -69,36 +67,36 @@ app.get("/request", (req, res) => {
 });
 
 //Update Request
-app.patch("/request/:id", (req, res) => {
+app.put("/task/:id", (req, res) => {
   //FIND THE DOC TO UPDATE
-  const requestID = req.params.id;
-  RequestModel.findByIdAndUpdate(requestID)
-    .then((request) => {
+  const taskId = req.params.id;
+  TaskModel.findByIdAndUpdate(taskId)
+    .then((task) => {
       //UPDATE IN MEMORY
-      request.isCompleted = !request.isCompleted;
+      task.isCompleted = !task.isCompleted;
       // SAVE TO DB
-      return request.save();
+      return task.save();
     })
-    .then((updatedRequest) => {
-      res.json({ message: "Success", updatedRequest });
+    .then((updatedTask) => {
+      res.json({ message: "Success", updatedTask });
     })
     .catch((error) => {
       console.log("Error updating data from DB:", error);
-      res.status(400).json({ message: "Unable to update request" });
+      res.status(400).json({ message: "Unable to update task" });
     });
 });
 
 //Delete Request
-app.delete("/request/:id", (req, res) => {
-  const requestID = req.params.id;
+app.delete("/task/:id", (req, res) => {
+  const taskId = req.params.id;
 
-  RequestModel.findByIdAndDelete(requestID)
-    .then((request) => {
-      res.json({ message: "Success", request });
+  TaskModel.findByIdAndDelete(taskId)
+    .then((task) => {
+      res.json({ message: "Success", task });
     })
     .catch((error) => {
-      console.log("Error deleting request from DB:", error);
-      res.status(400).json({ message: "Unable to delete request" });
+      console.log("Error deleting task from DB:", error);
+      res.status(400).json({ message: "Unable to delete task" });
     });
 });
 
