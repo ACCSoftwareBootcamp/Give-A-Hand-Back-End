@@ -17,7 +17,7 @@ mongoose
     console.log("Error connecting to the DB:", error);
   });
 
-const { TaskModel } = require("./server/models/taskModel");
+const { TaskModel } = require("./server/models/requestModel");
 
 //MIDDLEWARE
 app.use(express.urlencoded({ extended: false }));
@@ -43,25 +43,14 @@ app.post("/task", (req, res) => {
 
 //Read Request
 app.get("/task", (req, res) => {
-  let task = [];
-
-  function getTask(index) {
-    TaskModel.find()
-      .then((results) => {
-        res.json({ message: "Success", results });
-      })
-      .then((tasks) => {
-        task.push(tasks);
-        getTask(index + 1);
-      })
-      .catch((error) => {
-        console.log("error reading data from DB", error);
-        res
-          .status(400)
-          .json({ message: "Unable to retrive data at this time" });
-      });
-  }
-  getTask(0);
+  TaskModel.find()
+    .then((results) => {
+      res.json({ message: "Success", results });
+    })
+    .catch((error) => {
+      console.log("error reading data from DB", error);
+      res.status(400).json({ message: "Unable to retrive data at this time" });
+    });
 });
 //Read Request by ID
 app.get("/task/:id", (req, res) => {
