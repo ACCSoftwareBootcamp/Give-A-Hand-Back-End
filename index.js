@@ -52,8 +52,19 @@ app.get("/task", (req, res) => {
       res.status(400).json({ message: "Unable to retrive data at this time" });
     });
 });
+app.get("/task/:taskType", (req, res) => {
+  const taskType = req.params;
+  TaskModel.find(taskType)
+    .then((results) => {
+      res.json({ message: "Success", results });
+    })
+    .catch((error) => {
+      console.log("error reading data from DB", error);
+      res.status(400).json({ message: "Unable to retrive data at this time" });
+    });
+});
 //Read Request by ID
-app.get("/task/:id", (req, res) => {
+app.get("/task/:userId", (req, res) => {
   const taskId = req.params.id;
 
   TaskModel.find(taskId)
