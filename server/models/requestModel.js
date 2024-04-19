@@ -27,4 +27,4 @@ const taskSchema = {
   },
 };
 
-exports.TaskModel = mongoose.model("userTask", taskSchema);
+exports.TaskModel = mongoose.model("Task", taskSchema);

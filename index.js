@@ -42,8 +42,12 @@ app.post("/task", (req, res) => {
 });
 
 //Read Request
-app.get("/task", (req, res) => {
+app.get("/tasks", (req, res) => {
+  const { skip, limit } = req.query;
+  console.log(skip, limit);
   TaskModel.find()
+    .skip(skip)
+    .limit(limit)
     .then((results) => {
       res.json({ message: "Success", results });
     })
@@ -62,7 +66,7 @@ app.get("/task/:id", (req, res) => {
     })
     .catch((error) => {
       console.log("error reading data from DB", error);
-      res.status(400).json({ message: "Unable to retrive data at this time" });
+      res.status(400).json({ message: "Unable to retrieve data at this time" });
     });
 });
 
