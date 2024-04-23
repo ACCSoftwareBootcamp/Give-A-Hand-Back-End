@@ -54,6 +54,7 @@ app.get("/task", (req, res) => {
 });
 app.get("/task/:taskType", (req, res) => {
   const taskType = req.params;
+
   TaskModel.find(taskType)
     .then((results) => {
       res.json({ message: "Success", results });
@@ -84,7 +85,7 @@ app.put("/task/:id", (req, res) => {
   TaskModel.findByIdAndUpdate(taskId)
     .then((task) => {
       //UPDATE IN MEMORY
-      task.isCompleted = !task.isCompleted;
+      task.inProgress = !task.inProgress;
       // SAVE TO DB
       return task.save();
     })

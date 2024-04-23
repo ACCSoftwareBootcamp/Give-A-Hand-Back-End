@@ -18,12 +18,21 @@ const taskSchema = {
     default: false,
     required: true,
   },
+  inProgress: {
+    type: Boolean,
+    default: false,
+    required: true,
+  },
   name: {
     type: String,
     required: true,
   },
   userId: {
     type: String,
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now,
   },
 };
 
