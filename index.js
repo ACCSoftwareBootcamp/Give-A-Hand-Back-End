@@ -4,8 +4,9 @@ const cors = require("cors");
 const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3000;
+const { TaskModel } = require("./server/models/taskModel");
+const authenticateToken = require("./server/middleware/jwtToken");
 //FOUNDATION
-
 const connectionString = process.env.MONGODB_URI;
 
 mongoose
@@ -16,8 +17,6 @@ mongoose
   .catch((error) => {
     console.log("Error connecting to the DB:", error);
   });
-
-const { TaskModel } = require("./server/models/requestModel");
 
 //MIDDLEWARE
 app.use(express.urlencoded({ extended: false }));
@@ -43,17 +42,35 @@ app.post("/task", (req, res) => {
 
 //Read Request
 app.get("/tasks", (req, res) => {
-  const { skip, limit } = req.query;
-  console.log(skip, limit);
-  TaskModel.find()
-    .skip(skip)
-    .limit(limit)
+  const { searchTerm, limit, page } = req.query;
+  const regex = new RegExp(searchTerm, "i");
+  const userId = req.userId;
+
+  TaskModel.paginate(
+    { name: { $regex: regex }, userId: null },
+    { page: page, limit: limit },
+  )
+    .then((results) => {
+      console.log(results);
+      res.json({ message: "Success", ...results });
+    })
+    .catch((error) => {
+      console.log("error reading data from DB", error);
+      res.status(400).json({ message: "Unable to retrieve data at this time" });
+    });
+});
+
+//Get User's Tasks
+app.get("/user-tasks", authenticateToken, (req, res) => {
+  const { userId } = req;
+
+  TaskModel.find({ userId })
     .then((results) => {
       res.json({ message: "Success", results });
     })
     .catch((error) => {
       console.log("error reading data from DB", error);
-      res.status(400).json({ message: "Unable to retrive data at this time" });
+      res.status(400).json({ message: "Unable to retrieve data at this time" });
     });
 });
 //Read Request by ID
@@ -71,13 +88,14 @@ app.get("/task/:id", (req, res) => {
 });
 
 //Update Request
-app.put("/task/:id", (req, res) => {
+app.put("/task/:taskId", authenticateToken, (req, res) => {
   //FIND THE DOC TO UPDATE
-  const taskId = req.params.id;
+  const taskId = req.params.taskId;
+
   TaskModel.findByIdAndUpdate(taskId)
     .then((task) => {
       //UPDATE IN MEMORY
-      task.isCompleted = !task.isCompleted;
+      task.userId = req.userId;
       // SAVE TO DB
       return task.save();
     })
@@ -93,7 +111,6 @@ app.put("/task/:id", (req, res) => {
 //Delete Request
 app.delete("/task/:id", (req, res) => {
   const taskId = req.params.id;
-
   TaskModel.findByIdAndDelete(taskId)
     .then((task) => {
       res.json({ message: "Success", task });
