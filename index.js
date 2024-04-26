@@ -44,14 +44,9 @@ app.post("/task", (req, res) => {
 app.get("/tasks", (req, res) => {
   const { searchTerm, limit, page } = req.query;
   const regex = new RegExp(searchTerm, "i");
-  const userId = req.userId;
 
-  TaskModel.paginate(
-    { name: { $regex: regex }, userId: null },
-    { page: page, limit: limit },
-  )
+  TaskModel.paginate({ name: { $regex: regex }, userId: null }, { page, limit })
     .then((results) => {
-      console.log(results);
       res.json({ message: "Success", ...results });
     })
     .catch((error) => {
