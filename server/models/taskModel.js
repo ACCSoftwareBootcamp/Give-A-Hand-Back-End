@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
+const mongoosePaginate = require("mongoose-paginate-v2");
 
-const taskSchema = {
+const taskSchema = new mongoose.Schema({
   taskType: {
     type: String,
     required: [true, "Type of Task is required"],
@@ -22,9 +23,18 @@ const taskSchema = {
     type: String,
     required: true,
   },
+  image: {
+    type: String,
+    required: false, // Change to true after implementation
+  },
+  authorId: {
+    type: String,
+  },
   userId: {
     type: String,
   },
-};
+});
+
+taskSchema.plugin(mongoosePaginate);
 
 exports.TaskModel = mongoose.model("Task", taskSchema);
