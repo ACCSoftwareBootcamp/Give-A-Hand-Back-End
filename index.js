@@ -47,11 +47,14 @@ app.get("/tasks", (req, res) => {
   const userId = req.userId;
 
   TaskModel.paginate(
-    { name: { $regex: regex }, userId: null },
+    {
+      $or: [{ name: regex }, { taskType: regex }, { description: regex }],
+      userId: null,
+    },
     { page: page, limit: limit },
   )
     .then((results) => {
-      console.log(results);
+      // console.log('Results are: ', results);
       res.json({ message: "Success", ...results });
     })
     .catch((error) => {
