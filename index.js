@@ -3,9 +3,12 @@ require("dotenv").config();
 const cors = require("cors");
 const express = require("express");
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3002;
+const ImageModel = require("./server/models/Image");
 const { TaskModel } = require("./server/models/taskModel");
 const authenticateToken = require("./server/middleware/jwtToken");
+const cloudinary = require("cloudinary").v2;
+const path = require("path");
 //FOUNDATION
 const connectionString = process.env.MONGODB_URI;
 
@@ -22,10 +25,29 @@ mongoose
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors());
+//Bring in Multer
+const upload = require("./server/middleware/multer");
+//Bring in cloudinary
+require("./server/connections/cloudinary");
 
 //Routes
 app.get("/", (req, res) => {
   res.send("I am the GROOT Route");
+});
+
+//Image upload
+app.post("/upload", upload.single("image"), async (req, res) => {
+  try {
+    const result = await cloudinary.uploader.upload(req.file.path);
+    const newImg = new ImageModel({
+      imgUrl: result.secure_url,
+    });
+    let savedImg = await newImg.save();
+    res.json(savedImg);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: "Something broke" });
+  }
 });
 
 //Create New Request
