@@ -5,7 +5,10 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const { TaskModel } = require("./server/models/taskModel");
+const ImageModel = require("./server/models/Image");
 const authenticateToken = require("./server/middleware/jwtToken");
+const cloudinary = require("cloudinary").v2;
+const path = require("path");
 //FOUNDATION
 const connectionString = process.env.MONGODB_URI;
 
@@ -22,10 +25,30 @@ mongoose
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors());
+//Bring in Multer
+const upload = require("./server/middleware/multer");
+//Bring in cloudinary
+require("./server/connections/cloudinary");
 
 //Routes
 app.get("/", (req, res) => {
   res.send("I am the GROOT Route");
+});
+
+//Added Image upload
+app.post("/task-image/:taskId", upload.single("image"), async (req, res) => {
+  const taskId = req.params.taskId;
+  try {
+    const result = await cloudinary.uploader.upload(req.file.path);
+    const Task = await TaskModel.findByIdAndUpdate(taskId);
+    Task.imageUrl = result.secure_url;
+    let savedImg = await Task.save();
+
+    res.json({ message: "Success image saved", savedImg });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: "Something broke" });
+  }
 });
 
 //Create New Request
@@ -44,14 +67,12 @@ app.post("/task", (req, res) => {
 app.get("/tasks", (req, res) => {
   const { searchTerm, limit, page } = req.query;
   const regex = new RegExp(searchTerm, "i");
-  const userId = req.userId;
 
   TaskModel.paginate(
     { name: { $regex: regex }, userId: null },
     { page: page, limit: limit },
   )
     .then((results) => {
-      console.log(results);
       res.json({ message: "Success", ...results });
     })
     .catch((error) => {
@@ -87,7 +108,7 @@ app.get("/task/:id", (req, res) => {
     });
 });
 
-//Update Request
+//Assign Author to Task
 app.put("/task/:taskId", authenticateToken, (req, res) => {
   //FIND THE DOC TO UPDATE
   const taskId = req.params.taskId;
