@@ -4,8 +4,8 @@ const cors = require("cors");
 const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3002;
-const ImageModel = require("./server/models/Image");
 const { TaskModel } = require("./server/models/taskModel");
+const ImageModel = require("./server/models/Image");
 const authenticateToken = require("./server/middleware/jwtToken");
 const cloudinary = require("cloudinary").v2;
 const path = require("path");
@@ -35,7 +35,7 @@ app.get("/", (req, res) => {
   res.send("I am the GROOT Route");
 });
 
-//Image upload
+//Added Image upload
 app.post("/upload", upload.single("image"), async (req, res) => {
   try {
     const result = await cloudinary.uploader.upload(req.file.path);
